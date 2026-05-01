@@ -1,0 +1,38 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npm run server"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@tailwindcss/vite": "^4.2.2",
+    "axios": "^1.13.6",
+    "bcryptjs": "^3.0.3",
+    "bullmq": "^5.71.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-validator": "^7.3.2",
+    "ioredis": "^5.10.1",
+    "joi": "^18.1.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongodb": "^4.17.2",
+    "mongoose": "^9.3.3",
+    "morgan": "^1.10.1",
+    "multer": "^2.1.1",
+    "nanoid": "^5.1.7",
+    "nodemon": "^3.1.14",
+    "socket.io": "^4.8.3",
+    "string-similarity": "^4.0.4",
+    "tailwindcss": "^4.2.2"
+  }
+}
