@@ -20,7 +20,7 @@ const MainLayout = () => {
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        return  () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     // Helper for notification icons inside the dropdown
