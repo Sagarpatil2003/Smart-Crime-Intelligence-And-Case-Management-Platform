@@ -59,7 +59,7 @@ app.use((req, res) => {
   res.status(404).json({ success: false, message: "API route not found" });
 });
 
-// 4. CRITICAL: Use server.listen, NOT app.listen
+
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log('Server running on port ' + PORT));
 

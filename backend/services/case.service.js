@@ -356,30 +356,28 @@ exports.getNearbyCases = async (coordinates, radius = 5, query = {}) => {
         status: { $ne: "CLOSED" }
     };
 
-    if (coordinates && coordinates[0] && coordinates[1]) {
+    // Validation check to prevent NaN in MongoDB query
+    if (Array.isArray(coordinates) && !isNaN(coordinates[0]) && !isNaN(coordinates[1])) {
         const [lng, lat] = coordinates;
         filter.location = {
             $near: {
                 $geometry: { type: "Point", coordinates: [lng, lat] },
-                $maxDistance: radius * 1000 // KM to Meters
+                $maxDistance: Number(radius) * 1000 // Ensure radius is a number
             }
         };
     }
 
-    // 1. Fetch the data
     const cases = await CaseModel.find(filter)
         .select("title crimeType location createdAt status")
         .skip(skip)
         .limit(limit)
         .lean();
 
-
-    // We use .count() or a separate logic for geo-spatial totals.
+    // Use countDocuments for better compatibility
     let total;
     try {
-        total = await CaseModel.find(filter).count();
+        total = await CaseModel.countDocuments(filter);
     } catch (e) {
-        // Fallback if geo-count fails in your MongoDB version
         total = await CaseModel.countDocuments({ status: { $ne: "CLOSED" } });
     }
 
@@ -392,8 +390,7 @@ exports.getNearbyCases = async (coordinates, radius = 5, query = {}) => {
             pages: Math.ceil(total / limit)
         }
     };
-}
-
+};
 
 
 

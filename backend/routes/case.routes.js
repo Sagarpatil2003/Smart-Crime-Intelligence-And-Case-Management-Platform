@@ -15,14 +15,24 @@ const upload = require('../middlewares/multer.middleware')
 const parseLocation = require('../middlewares/parseLocation.middleware')
 const { query } = require('express-validator')
 
+
+
+
+
+router.use(auth)
+
+
 /**
  * @route   GET /cases/nearBycases
  * @desc    Public news feed/map of nearby incidents
  */
-router.get('/nearBycases', validate(nearbyCasesSchema), caseController.getNearbyCases)
+router.get(
+    '/nearBycases',
+     role("CITIZEN", "OFFICER", "ADMIN", "LAWYER", "JUDGE"),
+    validate(nearbyCasesSchema),
+    caseController.getNearbyCases
+)
 
-
-router.use(auth)
 
 /**
  * @route   GET /cases/my-cases
@@ -49,7 +59,11 @@ router.post('/report',
     caseController.createCase
 )
 
-router.get("/user-summary", caseController.getUserDashboard)
+router.get(
+    "/user-summary",
+    role("CITIZEN", "OFFICER", "ADMIN", "LAWYER", "JUDGE"),
+    caseController.getUserDashboard
+)
 router.get("/case-state",
     role("CITIZEN", "OFFICER", "ADMIN", "LAWYER", "JUDGE"),
     caseController.getCityCrimeStats

@@ -5,7 +5,12 @@ import {
   getCaseById,
   addEvidence,
   addWitness,
-  getCaseLogs
+  getCaseLogs,
+  getCaseStates,
+  getTopCrimeTypesInRadius,
+  getNearByCrime,
+  getHeatmap,
+  getNearbyCaseForMap
 } from '../services/caseServices';
 import axios from 'axios';
 
@@ -129,10 +134,111 @@ export const fetchCaseLog = createAsyncThunk(
   }
 )
 
+export const fetchCaseState = createAsyncThunk(
+  "case/getCaseState",
+  async (_, { rejectWithValue }) => {
+    try {
+
+      const token = localStorage.getItem("accessToken")
+      if (!token) {
+        throw new Error("No access token found, please login again")
+      }
+      const result = await getCaseStates(token)
+      // console.log(result)
+      return result
+    } catch (error) {
+      console.log(error)
+      return rejectWithValue(error.message?.data?.message || error.message || "Faile to fetch case states")
+    }
+  }
+)
+
+export const fetchTopCrimeTypesInRadius = createAsyncThunk(
+  "case/getUserDashboard",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("accessToken")
+      if (!token) {
+        throw new Error("No access token found, please login again")
+      }
+      const result = await getTopCrimeTypesInRadius(token)
+      // console.log(result)
+      return result
+    } catch (error) {
+      console.log(error)
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Failed to fetch dashboard"
+      );
+    }
+  }
+)
+
+export const fetchNearbyCases = createAsyncThunk(
+  "case/getNearByCases",
+  async ({ lat, lng, page, limit }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("accessToken")
+      if (!token) throw new Error("No access token found, please login again")
+      let result = await getNearByCrime(lat, lng, page, limit, token)
+      return result
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || data?.message || "Failed to fetch nearby cases")
+    }
+  }
+)
+
+export const fetchHeatMap = createAsyncThunk(
+  "case/getHeatMap",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("accessToken")
+      if (!token) {
+        throw new Error("No access token found, please login again")
+      }
+      const result = await getHeatmap(token)
+      return result
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch heatmap")
+    }
+  }
+)
+
+export const fetchNearbyCasesForMap = createAsyncThunk(
+  "case/nearByCase",
+  async ({ lat, lng, radius }, { rejectWithValue }) => {
+
+    try {
+      const token = localStorage.getItem("accessToken")
+      if (!token) {
+        throw new Error('No access token found, please login again')
+      }
+
+      const result = await getNearbyCaseForMap(lat, lng, radius, token)
+      console.log(result)
+      return result
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch NearbyCaseForMap")
+    }
+  }
+)
+
+
 
 const initialState = {
   items: [],
   logs: [],
+  cityCrimeGraph: [],
+  nearbyCases: [],
+  heatMap: [],
+  nearbyCasesForMap: [],
+  mtrix: {
+    totalReports: 0,
+    activeCases: 0,
+    resolvedCases: 0
+  },
+  totalSubmitted: 0,
+  activeCases: 0,
+  resolvedCases: 0,
   logsPagination: null,
   currentCase: null,
   loading: false,
@@ -154,7 +260,7 @@ const caseSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Submit Case
+
       .addCase(submitCase.pending, (state) => {
         state.loading = true;
       })
@@ -168,7 +274,6 @@ const caseSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Fetch Cases
       .addCase(fetchMyCases.pending, (state) => {
         state.loading = true;
       })
@@ -182,7 +287,6 @@ const caseSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Fetch Case Detaile
       .addCase(fetchCaseDetails.pending, (state) => {
         state.loading = true;
         state.error = null
@@ -196,7 +300,6 @@ const caseSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Add evidence (.IMG, .VIDEO, .DOC)
       .addCase(submitEvidence.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -210,7 +313,6 @@ const caseSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Add witness (evidence)
       .addCase(submitWitnessEvidence.pending, (state) => {
         state.loading = true
         state.error = null
@@ -224,7 +326,6 @@ const caseSlice = createSlice({
         state.error = action.payload
       })
 
-      // Case Logs
       .addCase(fetchCaseLog.pending, (state) => {
         state.loading = true
         state.error = null
@@ -238,6 +339,82 @@ const caseSlice = createSlice({
         state.loading = false
         state.error = action.payload
       })
+
+      .addCase(fetchTopCrimeTypesInRadius.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTopCrimeTypesInRadius.fulfilled, (state, action) => {
+        console.log("SERVER PAYLOAD:", action.payload)
+        state.loading = false;
+        state.mtrix = action.payload.data.userMetrics;
+        state.cityCrimeGraph = action.payload.data.cityCrimeGraph;
+      })
+      .addCase(fetchTopCrimeTypesInRadius.rejected, (state, action) => {
+        console.log("Full Payload:", action.payload); 
+        state.loading = false;
+        state.error = action.payload;
+        state.success = false;
+      })
+
+      .addCase(fetchCaseState.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(fetchCaseState.fulfilled, (state, action) => {
+        state.loading = false
+        state.activeCases = action.payload.data.activeCases
+        state.totalSubmitted = action.payload.data.totalSubmitted
+        state.resolvedCases = action.payload.data.resolvedCases
+      })
+      .addCase(fetchCaseState.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+      })
+
+      .addCase(fetchNearbyCases.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(fetchNearbyCases.fulfilled, (state, action) => {
+        state.loading = false
+        state.nearbyCases = action.payload.data?.cases
+        state.pagination = action.payload.pagination;
+      })
+      .addCase(fetchNearbyCases.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(fetchHeatMap.pending, (state,) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(fetchHeatMap.fulfilled, (state, action) => {
+        state.loading = false
+        state.heatMap = action.payload.data
+      })
+      .addCase(fetchHeatMap.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+      })
+
+      .addCase(fetchNearbyCasesForMap.pending, (state,) => {
+        state.loading = true
+        state.error = null
+        state.nearbyCasesForMap = []
+      })
+      .addCase(fetchNearbyCasesForMap.fulfilled, (state, action) => {
+        state.loading = false;
+        // This correctly pulls the Array(3) from your logged object
+        state.nearbyCasesForMap = action.payload.data || []
+      })
+
+      .addCase(fetchNearbyCasesForMap.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+      })
+
   },
 });
 

@@ -177,15 +177,24 @@ exports.updateCaseStatus = catchAsync(async (req, res) => {
 
 
 exports.getNearbyCases = catchAsync(async (req, res) => {
-    const { lat, lng, page, limit } = req.query;
+    const { lat, lng, page, limit, radius } = req.query;
+
+    // Convert to numbers and validate
+    const longitude = Number(lng);
+    const latitude = Number(lat);
+
+    if (isNaN(longitude) || isNaN(latitude)) {
+        throw new ApiError(400, "Valid longitude and latitude are required");
+    }
 
     const data = await caseService.getNearbyCases(
-        [Number(lng), Number(lat)],
-        { page, limit }
-    )
+        [longitude, latitude],
+        radius || 5, // Pass radius as the second argument
+        { page, limit } // This now correctly reaches the 'query' parameter
+    );
 
-    res.status(200).json(new ApiResponse(200, data, "all cases"))
-})
+    res.status(200).json(new ApiResponse(200, data, "Nearby cases retrieved"));
+});
 
 // DASHBOARD
 exports.getCityCrimeStats = catchAsync(async(req, res) => {

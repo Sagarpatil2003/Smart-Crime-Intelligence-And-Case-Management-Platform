@@ -14,9 +14,10 @@ const permit = require('../middlewares/permission.middleware');
  */
 router.get(
     '/heatmap',
-    auth, 
+    auth,
+    role('CITIZEN', 'OFFICER', 'ADMIN'),
     mapController.getHeatmap
-);
+)
 
 /**
  * @route   GET maps/nearby
@@ -26,7 +27,7 @@ router.get(
 router.get(
     '/nearby',
     auth,
-    role(['OFFICER', 'ADMIN']), // Restrict precise "Nearby" data to authorities
+    role('CITIZEN', 'OFFICER', 'ADMIN'), // Restrict precise "Nearby" data to authorities
     mapController.getNearby
 );
 

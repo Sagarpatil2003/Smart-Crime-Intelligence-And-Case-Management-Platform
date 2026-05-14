@@ -54,20 +54,20 @@ const ReportCrime = ({ onSuccess }) => {
                 if (onSuccess) onSuccess();
             }, 500);
         }
-    }, [success, dispatch, onSuccess]);
+    }, [success, dispatch, onSuccess, previews]);
 
 
     useEffect(() => {
-        // You can adjust this timeout to test the skeleton duration
+      
         const timer = setTimeout(() => {
             setIsInitialLoading(false);
-        }, 500); // 1.5 seconds shimmer
+        }, 500);  
 
         return () => clearTimeout(timer);
     }, [])
 
 
-    // --- REVERSE GEOCODING (FIXED) ---
+    // --- REVERSE GEOCODING ---
     const reverseGeocode = async (lat, lng) => {
         setIsAddressLoading(true);
         try {
@@ -102,12 +102,12 @@ const ReportCrime = ({ onSuccess }) => {
         }
     };
 
-    // --- ADDRESS TO COORDS (FIXED) ---
-    
+    // --- ADDRESS TO COORDS  ---
+
     const geocodeAddress = async () => {
         if (!form.location.address) { setIsLocating(false); return; }
         try {
-            // Fixed the fetch URL to point to the correct Nominatim endpoint
+            //  fetch URL to point to the correct Nominatim endpoint
             const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(form.location.address)}`);
             const data = await res.json();
             if (data && data.length > 0) {
@@ -166,48 +166,46 @@ const ReportCrime = ({ onSuccess }) => {
         setPreviews(prev => prev.filter((_, i) => i !== index));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+   const handleSubmit = async (e) => {
+    e.preventDefault();
 
-        // 1. Validation
-        if (form.location.coordinates.length !== 2) {
-            return alert("Please lock GPS location first.");
-        }
-
-        // 2. Create FormData (Required for File Uploads)
-        const formData = new FormData();
-        formData.append("title", form.title);
-        formData.append("description", form.description);
-        formData.append("crimeType", form.crimeType);
-        formData.append("priority", form.priority);
-        formData.append("isAnonymous", form.isAnonymous);
-        formData.append("address", form.location.address);
-
-        // Send coordinates as a string or separate fields
-        formData.append("longitude", form.location.coordinates[1]);
-        formData.append("latitude", form.location.coordinates[0]);
-
-        // 3. Append Multiple Files
-        form.evidence.forEach((file) => {
-            formData.append("evidence", file);
-        });
-
-        // 4. Dispatch to Redux
-        dispatch(submitCase(formData));
-
-        setForm({
-            title: "",
-            description: "",
-            crimeType: "theft",
-            priority: "MEDIUM",
-            isAnonymous: false,
-            location: { address: "", coordinates: [] },
-            evidence: []
-        })
-        // for (let [key, value] of formData.entries()) {
-        //     console.log(`${key}:`, value);
-        // } 
+    // Ensure coordinates exist in the local state
+    const [lng, lat] = form.location.coordinates;
+    
+    if (lng === undefined || lat === undefined || isNaN(lng) || isNaN(lat)) {
+        return alert("GPS location is not locked. Please use the navigation button.");
     }
+
+    const formData = new FormData();
+    formData.append("title", form.title);
+    formData.append("description", form.description);
+    formData.append("crimeType", form.crimeType);
+    formData.append("priority", form.priority);
+    formData.append("isAnonymous", String(form.isAnonymous)); //
+    formData.append("address", form.location.address || "Unknown Location");
+
+    // Pass coordinates to the service for processing
+    formData.append("longitude", lng.toString());
+    formData.append("latitude", lat.toString());
+
+    form.evidence.forEach((file) => {
+        formData.append("evidence", file);
+    });
+
+    dispatch(submitCase(formData));
+
+    // Reset local UI state after submission
+    setForm({
+        title: "",
+        description: "",
+        crimeType: "theft",
+        priority: "MEDIUM",
+        isAnonymous: false,
+        location: { address: "", coordinates: [] },
+        evidence: []
+    });
+    setPreviews([]);
+};
 
 
 

@@ -18,18 +18,18 @@ exports.getHeatmapData = async () => {
         }
     ])
 }
-
+// backend/services/map.service.js
 exports.getNearByCrime = async (lng, lat, radius, limit = 100) => {
     return await CaseModel.find({
         isDeleted: false,
         location: {
             $near: {
                 $geometry: { type: "Point", coordinates: [lng, lat] },
-                $maxDistance: radius * 1000
+                $maxDistance: Number(radius) * 1000 // KM to Meters
             }   
         }
     })
-    .limit(limit) // Prevent massive payloads
-    .select("-shareToken") // Don't leak tokens in public proximity searches
+    .limit(limit)
+    .select("-shareToken")
     .lean();
 };

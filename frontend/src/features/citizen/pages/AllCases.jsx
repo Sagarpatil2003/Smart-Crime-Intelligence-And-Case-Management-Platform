@@ -10,7 +10,6 @@ const AllCases = () => {
     <div >
       <MyCases search={searchTerm} status={statusFilter} />
     </div>
-
   );
 };
 

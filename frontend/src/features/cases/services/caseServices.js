@@ -1,39 +1,50 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000'
+const API_URL = import.meta.env.VITE_API_URL
+console.log(API_URL)
+console.log(import.meta.env);
+// const API_URL = "http://localhost:5000";
 
 export const reportIncident = async (caseData, token) => {
-  //  Extract values from the incoming FormData
+  // Extract raw strings from FormData
   const lat = caseData.get('latitude');
   const lng = caseData.get('longitude');
   const address = caseData.get('address');
 
-  // Create the GeoJSON 'location' object for Mongoose
+  // Convert to Numbers FIRST
+  const parsedLat = parseFloat(lat);
+  const parsedLng = parseFloat(lng);
+
+  // Validate for NaN
+  if (isNaN(parsedLat) || isNaN(parsedLng)) {
+    throw new Error("Invalid location coordinates. Please lock your GPS location.");
+  }
+
+
+  // Structure for MongoDB (Longitude first for GeoJSON)
   const locationData = {
     type: 'Point',
-    coordinates: [parseFloat(lng), parseFloat(lat)], // Longitude first for GeoJSON
+    coordinates: [parsedLng, parsedLat],
     address: address
   };
 
-  // Append the formatted location to the existing FormData
-  //  FormData stores everything as strings, so we stringify the object
+  // 5. Package as a single stringified object for the backend
   caseData.append('location', JSON.stringify(locationData));
 
-  // Clean up: Remove the flat latitude/longitude/address so they don't double up
+  // 6. Remove the flat fields to avoid duplicate data
   caseData.delete('latitude');
   caseData.delete('longitude');
   caseData.delete('address');
 
-
   const response = await axios.post(`${API_URL}/case/report`, caseData, {
     headers: {
       'Content-Type': 'multipart/form-data',
-      'Authorization': `Bearer ${token}` // Add the token here
+      'Authorization': `Bearer ${token}`
     },
     withCredentials: true,
   });
   return response.data;
-}
+};
 
 export const getMyCases = async (params = {}, token) => {
   // axios can handle the object and convert it to ?key=value automatically
@@ -60,7 +71,7 @@ export const getCaseById = async (id, token) => {
 }
 
 export const addEvidence = async (id, evidenceData, token) => {
-    // console.log(evidenceData)
+  // console.log(evidenceData)
   const response = await axios.post(`${API_URL}/evidence/${id}/evidence`, evidenceData.formData, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -78,17 +89,71 @@ export const addWitness = async (id, witnessData, token) => {
     headers: {
       Authorization: `Bearer ${token}`
     },
-    withCredentials:true
+    withCredentials: true
   })
   return response.data
 }
 
-export const getCaseLogs = async(id, token) => {
+export const getCaseLogs = async (id, token) => {
   const response = await axios.get(`${API_URL}/case/${id}/logs`, {
-    headers:{
+    headers: {
       Authorization: `Bearer ${token}`
     },
-    withCredentials:true
+    withCredentials: true
   })
   return response.data
 }
+
+export const getCaseStates = async (token) => {
+  const response = await axios.get(`${API_URL}/case/case-state`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    withCredentials: true
+  })
+  return response.data
+}
+
+export const getTopCrimeTypesInRadius = async (token) => {
+  const response = await axios.get(`${API_URL}/case/user-summary`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    withCredentials: true
+  })
+  return response.data
+}
+
+export const getNearByCrime = async (lat, lng, page, limit, token) => {
+  const response = await axios.get(`${API_URL}/case/nearBycases`, {
+    params: { lat, lng, page, limit },
+    headers: { Authorization: `Bearer ${token}` },
+    withCredentials: true,
+  })
+  return response.data
+}
+
+export const getHeatmap = async (token) => {
+  const response = await axios.get(`${API_URL}/map/heatmap`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    withCredentials: true
+  })
+  return response.data
+}
+
+// caseServices.js
+export const getNearbyCaseForMap = async (lat, lng, radius, token) => {
+  const response = await axios.get(`${API_URL}/map/nearby`, {
+    // Ensure these keys (lng, lat) match the backend's req.query.lng and req.query.lat
+    params: {
+      lng: lng,
+      lat: lat,
+      radius: radius
+    },
+    headers: { Authorization: `Bearer ${token}` },
+    withCredentials: true
+  });
+  return response.data;
+};
