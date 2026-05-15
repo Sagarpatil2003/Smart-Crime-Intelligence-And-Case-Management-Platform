@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db.config');
 const connectRedis = require('./config/redis.config')
 const globalErrorHandler = require('./middlewares/globalErrorHandler.middleware');
+const limiter = require("./middlewares/rateLimit.middleware")
 const authRouter = require('./routes/auth.route');
 const caseRouter = require('./routes/case.routes');
 const evidenceRouter = require('./routes/evidence.route')
@@ -42,6 +43,7 @@ app.use(express.json());
 app.use(cookieParser())
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
+app.use(limiter);
 
 // Routes
 app.use('/auth', authRouter)
