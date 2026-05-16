@@ -6,13 +6,9 @@ import useAuth from "../hooks/useAuth";
 
 const LoginPage = () => {
     const navigate = useNavigate();
-
     const { user, setUser } = useAuth();
-
     const [loading, setLoading] = useState(false);
-
-    const [error, setError] = useState("");
-
+    const [error, setError] = useState("")
     const [credentials, setCredentials] = useState({
         email: "",
         password: "",

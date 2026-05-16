@@ -151,7 +151,7 @@ const SignUp = () => {
             </div>
 
             {/* Role */}
-            <select
+            {/* <select
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
@@ -161,7 +161,7 @@ const SignUp = () => {
                 <option value="OFFICER">Officer</option>
                 <option value="LAWYER">Lawyer</option>
                 <option value="ADMIN">Admin</option>
-            </select>
+            </select> */}
 
             {/* Button */}
             <button

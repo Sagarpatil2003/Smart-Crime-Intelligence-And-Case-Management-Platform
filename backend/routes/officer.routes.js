@@ -10,7 +10,7 @@ const { evidenceSchema, witnessSchema } = require('../validators/evidence.valida
 const OfficerCaseController = require('../controllers/officer/case.controller')
 
 router.use(auth)
-
+-
 router.patch("/:caseId/accept",
     role("OFFICER"),
     permit("INVESTIGATE_CASE"),
