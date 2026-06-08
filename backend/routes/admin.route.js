@@ -1,6 +1,5 @@
 const express = require('express')
 const router = express.Router()
-
 const role = require('../middlewares/role.middleware')
 const permit = require('../middlewares/permission.middleware')
 const AdminController = require("../controllers/admin/case.controller")

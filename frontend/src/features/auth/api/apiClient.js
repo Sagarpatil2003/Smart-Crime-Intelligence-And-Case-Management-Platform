@@ -1,6 +1,7 @@
 import axios from "axios"
 
-const baseURL = import.meta.env.VITE_API_URL
+// const baseURL = import.meta.env.VITE_API_URL
+const baseURL = `http://localhost:5000`
 const apiClient = axios.create({
   baseURL,
   withCredentials: true // MANDATORY: Allows cookies to be sent/reseived

@@ -19,10 +19,14 @@ const register = async (userData) => {
  * Login Existing user
  */
 const login = async (credentials) => {
+    // ✅ Fixed typo here
+    console.log("Attempting login with credentials:", credentials) 
+    
     const response = await apiClient.post('/auth/login', credentials)
+    // console.log("Received response from login API:", response)
     const { accessToken, user } = response.data.data
 
-    // Save the accessToken for the Interceptores use
+    // Save the accessToken for the Interceptors use
     localStorage.setItem("accessToken", accessToken)
 
     return { user, accessToken }

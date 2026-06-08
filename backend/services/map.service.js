@@ -1,8 +1,17 @@
-const CaseModel = require("../models/case.model")
+const CaseModel = require("../models/case.model");
 
+/**
+ * Retrieves aggregate geospatial data optimized for heat map rendering layers.
+ * Eliminates processing loads from runtime loops.
+ */
 exports.getHeatmapData = async () => {
     return await CaseModel.aggregate([
-        { $match: { status: { $ne: "CLOSED" }, isDeleted: false } }, 
+        { 
+            $match: { 
+                status: { $ne: "CLOSED" }, 
+                isDeleted: false 
+            } 
+        }, 
         { 
             $group: { 
                 _id: "$location.coordinates", 
@@ -13,23 +22,30 @@ exports.getHeatmapData = async () => {
             $project: { 
                 _id: 0, 
                 coordinates: "$_id", 
-                intensity: 1 
+                intensity: { $min: ["$intensity", 10] } // Bounds point density spikes
             } 
         }
-    ])
-}
-// backend/services/map.service.js
-exports.getNearByCrime = async (lng, lat, radius, limit = 100) => {
+    ]);
+};
+
+/**
+ * Fetches incidents near specified coordinates using standard GeoJSON rules.
+ */
+exports.getNearByCrime = async (lng, lat, radiusInKm, limit = 50) => {
     return await CaseModel.find({
         isDeleted: false,
+        status: { $ne: "CLOSED" },
         location: {
             $near: {
-                $geometry: { type: "Point", coordinates: [lng, lat] },
-                $maxDistance: Number(radius) * 1000 // KM to Meters
+                $geometry: { 
+                    type: "Point", 
+                    coordinates: [Number(lng), Number(lat)] 
+                },
+                $maxDistance: Number(radiusInKm) * 1000 // Km to meters conversion
             }   
         }
     })
-    .limit(limit)
-    .select("-shareToken")
-    .lean();
+    .limit(Number(limit))
+    .select("title description category status location createdAt")
+    .lean(); 
 };
