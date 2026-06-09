@@ -15,11 +15,9 @@ const register = async (userData) => {
     return response.data.data;
 };
 
-/**
- * Login Existing user
- */
+
 const login = async (credentials) => {
-    // ✅ Fixed typo here
+
     console.log("Attempting login with credentials:", credentials) 
     
     const response = await apiClient.post('/auth/login', credentials)
@@ -55,6 +53,7 @@ const logout = async () => {
 const refresh = async () => {
     // apiClient has 'withCredentials: true', so the cookie is sent automatically
     const response = await apiClient.post('/auth/refresh-token')
+  
 
     // Save the new accessToken returned by the rotation logic
     localStorage.setItem("accessToken", response.data.data.accessToken)

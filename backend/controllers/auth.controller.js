@@ -3,18 +3,20 @@ const catchAsync = require('../utils/catchAsync')
 const ApiError = require('../utils/ApiError')
 const ApiResponse = require('../utils/ApiResponse')
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const cookieOptions = {
     httpOnly: true,
-    secure: false, // MUST be false for localhost
-    sameSite: "Lax", // use Lax (Strict can block)
+    secure: isProduction,           // true on Render (HTTPS), false on localhost
+    sameSite: isProduction ? "None" : "Lax", // "None" allows cross-domain cookies in prod
     path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000
-}
+};
 
 exports.register = catchAsync(async (req, res) => {
     console.log("Full Request Body:", JSON.stringify(req.body, null, 2))
     const user = await authService.registerUser(req.body)
-    
+
     const response = new ApiResponse(201, user, "User registered successfully")
     console.log(response)
     res.status(response.statusCode).json(response)
@@ -64,4 +66,5 @@ exports.refreshAccessToken = catchAsync(async (req, res) => {
     res.cookie('refreshToken', newRefreshToken, cookieOptions)
         .status(200)
         .json(new ApiResponse(200, { accessToken, user }, "Token refreshed"))
+
 });
