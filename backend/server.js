@@ -2,13 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const http = require('http'); 
 const morgan = require('morgan');
-const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
 const connectDB = require('./config/db.config');
 const connectRedis = require('./config/redis.config');
 const globalErrorHandler = require('./middlewares/globalErrorHandler.middleware');
 const limiter = require("./middlewares/rateLimit.middleware");
+const corsMiddleware = require('./middlewares/cors.middleware'); // Decoupled export link
+
 const authRouter = require('./routes/auth.route');
 const caseRouter = require('./routes/case.routes');
 const evidenceRouter = require('./routes/evidence.route');
@@ -22,33 +23,24 @@ require('./workers/alertWorker');
 require('./workers/case.worker');
 require('./workers/cron.worker');
 
-// 1. Initialize app EXACTLY ONCE
 const app = express();
 
-// 2. Set proxy trust immediately on the instance
+// 2. Set proxy trust immediately on the instance (Crucial for secure cross-origin cookie recognition)
 app.set('trust proxy', 1);
 
 const server = http.createServer(app);
 const io = initSocket(server);
 connectDB();
 
-// 3. Middlewares
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://smart-crime-intelligence-and-case-man.netlify.app"
-  ],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+// 3. Middlewares Pipeline Execution
+app.use(corsMiddleware); // FIXED: Removed invocation parenthetical tags () to prevent crash 🧪
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use(limiter);
 
-// 4. Routes
+// 4. Routes Mounting
 app.use('/auth', authRouter);
 app.use('/case', caseRouter);
 app.use('/evidence', evidenceRouter);
@@ -59,7 +51,7 @@ app.use('/legal', legalRoutes);
 
 app.use(globalErrorHandler);
 app.use((req, res) => {
-  res.status(404).json({ success: false, message: "API route not found" });
+    res.status(404).json({ success: false, message: "API route not found" });
 });
 
 const PORT = process.env.PORT || 5000;

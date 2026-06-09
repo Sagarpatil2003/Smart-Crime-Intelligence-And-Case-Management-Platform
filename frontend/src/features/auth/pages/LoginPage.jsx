@@ -48,7 +48,7 @@ const LoginPage = () => {
             const backendMessage = err?.response?.data?.message;
             setError(
                 backendMessage ||
-                    "ACCESS_DENIED: Invalid credentials. Verification failed."
+                "ACCESS_DENIED: Invalid credentials. Verification failed."
             );
         } finally {
             setLoading(false);
@@ -59,7 +59,7 @@ const LoginPage = () => {
         <div className="min-h-screen flex items-center justify-center bg-[#0B0F12] px-4 font-sans antialiased">
             {/* Main Container themed to match the dashboard panels */}
             <div className="w-full max-w-md bg-white/[0.02] border-2 border-[#1E262D] rounded-none shadow-2xl p-8 relative">
-                
+
                 {/* Top decorative accent line resembling dashboard metrics */}
                 <div className="absolute top-0 left-0 right-0 h-[3px] bg-[#00BA63]" />
 

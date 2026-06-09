@@ -1,64 +1,96 @@
-import apiClient from "../api/apiClient"
-
+import apiClient from "../api/apiClient";
 
 /**
- * Register a new user
+ * Register a new user node
  */
 const register = async (userData) => {
-    // DON'T re-format here if you already did it in the Component!
-    // Just send userData directly.
     const response = await apiClient.post('/auth/register', userData);
-
+    
+    // Safety check nested envelope access parameters safely
     if (response.data?.data?.accessToken) {
         localStorage.setItem("accessToken", response.data.data.accessToken);
     }
-    return response.data.data;
+    
+    // Return the primary data root payload fallback safely
+    return response.data?.data || response.data;
 };
 
-
+/**
+ * Log in authorized credentials
+ */
 const login = async (credentials) => {
-
-    console.log("Attempting login with credentials:", credentials) 
+    console.log("Attempting login with credentials:", credentials); 
     
-    const response = await apiClient.post('/auth/login', credentials)
-    // console.log("Received response from login API:", response)
-    const { accessToken, user } = response.data.data
+    const response = await apiClient.post('/auth/login', credentials);
+    
+    // Extract both standard payload values and the backup fallback token
+    const { accessToken, refreshToken, user } = response.data.data;
 
-    // Save the accessToken for the Interceptors use
-    localStorage.setItem("accessToken", accessToken)
+    // 1. Core Token tracking
+    localStorage.setItem("accessToken", accessToken);
+    
+    // 2. Production Cross-Origin Domain Backup Channel Safeguard
+    if (refreshToken) {
+        localStorage.setItem("rt_backup_channel", refreshToken);
+    }
+    
+    if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+    }
 
-    return { user, accessToken }
-}
+    return { user, accessToken };
+};
 
 /**
- * LogOut and clear session
+ * LogOut and purge state records
  */
 const logout = async () => {
     try {
-        // This triggers the backend clearCookie('refreshToken')
-        await apiClient.post("/auth/logout")
+        await apiClient.post("/auth/logout");
     } catch (err) {
-        console.error("Server-side logout failed", err)
+        console.error("Server-side session cancellation failed:", err);
     } finally {
-        // Always clear local data even if server call fails
-        localStorage.removeItem("accessToken")
-        localStorage.clear()
-        window.location.href = "/login"
+        // Absolute local cleansing cascade sequence
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("rt_backup_channel");
+        localStorage.removeItem("user");
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        window.location.href = "/login";
     }
 };
 
 /**
- * Refresh token 
+ * Refresh active session validation rules
  */
 const refresh = async () => {
-    // apiClient has 'withCredentials: true', so the cookie is sent automatically
-    const response = await apiClient.post('/auth/refresh-token')
-  
+    // Read the fallback backup token tracking channel from local memory 
+    const backupToken = localStorage.getItem("rt_backup_channel");
 
-    // Save the new accessToken returned by the rotation logic
-    localStorage.setItem("accessToken", response.data.data.accessToken)
+    // Pass the token inside a custom header as a backup in case the cookie is blocked
+    const response = await apiClient.post('/auth/refresh-token', {}, {
+        headers: {
+            "X-Refresh-Token": backupToken || ""
+        }
+    });
+    
+    // Guard tracking check: Ensure response payload data node layers are valid
+    if (!response.data || !response.data.data) {
+        throw new Error("Invalid or corrupted token refresh payload mapping architecture.");
+    }
 
-    return response.data.data
-}
+    const { accessToken, refreshToken: newRefreshToken } = response.data.data;
 
-export default { login, logout, register, refresh }
+    if (accessToken) {
+        localStorage.setItem("accessToken", accessToken);
+    }
+    
+    if (newRefreshToken) {
+        localStorage.setItem("rt_backup_channel", newRefreshToken);
+    }
+
+    return response.data.data;
+};
+
+export default { login, logout, register, refresh };
