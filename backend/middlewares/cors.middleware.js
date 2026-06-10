@@ -3,8 +3,7 @@ const cors = require('cors');
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://gregarious-basbousa-0747ea.netlify.app", // Clean Netlify dynamic domain
-  "https://smart-crime-intelligence-and-case-man.netlify.app"
+  "https://smart-crime-intelligence-and-case-m.vercel.app/", // Clean Netlify dynamic domain
 ];
 
 const corsOptions = {
