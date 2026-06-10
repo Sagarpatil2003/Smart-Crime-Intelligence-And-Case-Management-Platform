@@ -3,7 +3,7 @@ const cors = require('cors');
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://smart-crime-intelligence-and-case-m.vercel.app/", // Clean Netlify dynamic domain
+  "https://smart-crime-intelligence-and-case-m.vercel.app", // Clean Netlify dynamic domain
 ];
 
 const corsOptions = {
