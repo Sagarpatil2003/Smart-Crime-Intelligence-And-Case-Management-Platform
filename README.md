@@ -36,11 +36,11 @@ React + Node.js + Express + MongoDB + Redis + BullMQ + Socket.IO
 
 ### Frontend
 
-https://your-frontend-url.vercel.app
+[https://your-frontend-url.vercel.app](https://smart-crime-intelligence-and-case-management-platfor-cnfa7zaq2.vercel.app/dashboard)
 
 ### Backend API
 
-https://your-backend-url.onrender.com
+[https://your-backend-url.onrender.com](https://smart-crime-intelligence-and-case.onrender.com)
 
 ---
 
